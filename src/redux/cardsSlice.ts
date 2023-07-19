@@ -1,18 +1,8 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-
-interface Task {
-  id: string;
-  name: string;
-}
-
-interface Column {
-  id: string;
-  name: string;
-  tasks: Task[];
-}
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { IColumn, ITask } from '@src/types';
 
 interface CardsState {
-  columns: Column[];
+  columns: IColumn[];
 }
 
 const initialState: CardsState = {
@@ -20,12 +10,12 @@ const initialState: CardsState = {
 };
 
 const cardsSlice = createSlice({
-  name: "cards",
+  name: 'cards',
   initialState,
   reducers: {
     addColumn(state, action: PayloadAction<string>) {
       if (state.columns.length < 5) {
-        const newColumn: Column = {
+        const newColumn: IColumn = {
           id: `column${state.columns.length + 1}`,
           name: action.payload,
           tasks: [],
@@ -54,7 +44,7 @@ const cardsSlice = createSlice({
       const { columnID, taskName } = action.payload;
       const column = state.columns.find((col) => col.id === columnID);
       if (column) {
-        const newTask: Task = {
+        const newTask: ITask = {
           id: `task${column.tasks.length + 1}`,
           name: taskName,
         };
@@ -88,6 +78,37 @@ const cardsSlice = createSlice({
         column.tasks = column.tasks.filter((t) => t.id !== taskID);
       }
     },
+    moveTask(
+      state,
+      action: PayloadAction<{
+        taskID: string;
+        fromColumnID: string;
+        toColumnID: string;
+      }>
+    ) {
+      const { taskID, fromColumnID, toColumnID } = action.payload;
+
+      // Find the 'from' column
+      const fromColumn = state.columns.find((col) => col.id === fromColumnID);
+
+      // Find the 'to' column
+      const toColumn = state.columns.find((col) => col.id === toColumnID);
+
+      if (fromColumn && toColumn) {
+        // Find the task being moved
+        const taskIndex = fromColumn.tasks.findIndex(
+          (task) => task.id === taskID
+        );
+
+        if (taskIndex !== -1) {
+          // Remove the task from the 'from' column
+          const task = fromColumn.tasks.splice(taskIndex, 1)[0];
+
+          // Add the task to the 'to' column
+          toColumn.tasks.push(task);
+        }
+      }
+    },
   },
 });
 
@@ -98,6 +119,7 @@ export const {
   addTask,
   editTask,
   deleteTask,
+  moveTask,
 } = cardsSlice.actions;
 
 export default cardsSlice.reducer;
