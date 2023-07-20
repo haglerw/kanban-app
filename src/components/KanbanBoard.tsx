@@ -1,12 +1,36 @@
 'use client';
 
-import { Breadcrumbs, Button, Link, Typography } from '@mui/material';
+import {
+  Breadcrumbs,
+  Box,
+  Link,
+  Typography,
+  TextField,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  createTheme,
+  ThemeProvider,
+} from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useDispatch, useSelector } from 'react-redux';
 import Column from './Column';
 import { IColumn } from '@src/types';
 import { useState } from 'react';
 import { addColumn } from '@src/redux/cardsSlice';
+import React from 'react';
+
+const customTheme = createTheme({
+  palette: {
+    primary: {
+      main: '#6470cd',
+    },
+    secondary: {
+      main: '#6470cd',
+    },
+  },
+});
 
 const KanbanBoard: React.FC = () => {
   const dispatch = useDispatch();
@@ -57,15 +81,42 @@ const KanbanBoard: React.FC = () => {
       {isAddingColumn ? (
         <div className="column">
           <div className="column-header">
-            <input
-              type="text"
-              value={newColumnName}
-              onChange={(e) => setNewColumnName(e.target.value)}
-            />
-            <div className="button-container">
-              <button onClick={handleCancelAddColumn}>Cancel</button>
-              <button onClick={handleAddColumnConfirm}>Add</button>
-            </div>
+            <ThemeProvider theme={customTheme}>
+              <Card>
+                <CardContent>
+                  <Box
+                    component="form"
+                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+                    autoComplete="off"
+                  >
+                    <TextField
+                      id="outlined-basic"
+                      label="Name"
+                      variant="outlined"
+                      value={newColumnName}
+                      onChange={(e) => setNewColumnName(e.target.value)}
+                    />
+                  </Box>
+                </CardContent>
+                <CardActions className="cardActions">
+                  <Button
+                    size="small"
+                    color="secondary"
+                    onClick={handleCancelAddColumn}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={handleAddColumnConfirm}
+                  >
+                    Add
+                  </Button>
+                </CardActions>
+              </Card>
+            </ThemeProvider>
           </div>
         </div>
       ) : (

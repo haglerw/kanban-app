@@ -51,11 +51,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   return (
     <div className="column" ref={drop}>
       <div className="column-header">
-        <input
+        {/* <input
           value={column.name}
           onChange={(e) => handleRenameColumn(e.target.value)}
           className="column-title"
-        />
+        /> */}
+        <p>{column.name}</p>
       </div>
     </div>
   );
