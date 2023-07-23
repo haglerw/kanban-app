@@ -1,5 +1,4 @@
 .kanban-board {
-  max-width: 1000px;
   padding: 30px;
 }
 
@@ -21,6 +20,7 @@
 
 .button {
   display: inline-block;
+  max-height: 45px;
   padding: 15px 40px;
   border: none;
   border-radius: 2px;
@@ -30,6 +30,7 @@
   font-size: 12px;
   text-align: center;
   cursor: pointer;
+  margin-top: 10px;
 }
 
 .button-container {
@@ -49,15 +50,13 @@
 
 .columns-container {
   display: flex;
-  gap: 20px;
+  justify-content: start;
 }
 
 .column {
   background-color: #f4f4f4;
   border-radius: 8px;
   padding: 10px;
-  min-width: 250px;
-  flex: 1;
 }
 
 .column-header {

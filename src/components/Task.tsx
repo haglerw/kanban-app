@@ -1,5 +1,6 @@
 'use client';
 
+import { Card, CardContent } from '@mui/material';
 import { deleteTask, editTask } from '@src/redux/cardsSlice';
 import { ITask } from '@src/types';
 import React from 'react';
@@ -21,7 +22,15 @@ const Task: React.FC<TaskProps> = ({ task, columnID }) => {
     dispatch(deleteTask({ columnID, taskID: task.id }));
   };
 
-  return <div></div>;
+  return (
+    <div>
+      <Card sx={{ marginBottom: 2 }}>
+        <CardContent>
+          <p>{task.name}</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default Task;

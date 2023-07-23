@@ -1,6 +1,6 @@
-## Kanban Board Web Application
+# Kanban Board Web Application
 
-# Screenshot will come here
+## Screenshot will come here
 
 ## Description
 

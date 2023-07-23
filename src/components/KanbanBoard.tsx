@@ -10,8 +10,6 @@ import {
   CardContent,
   CardActions,
   Button,
-  createTheme,
-  ThemeProvider,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,17 +19,6 @@ import { useState } from 'react';
 import { addColumn } from '@src/redux/cardsSlice';
 import React from 'react';
 
-const customTheme = createTheme({
-  palette: {
-    primary: {
-      main: '#6470cd',
-    },
-    secondary: {
-      main: '#6470cd',
-    },
-  },
-});
-
 const KanbanBoard: React.FC = () => {
   const dispatch = useDispatch();
   const columns = useSelector((state: any) => state.cards.columns);
@@ -40,12 +27,10 @@ const KanbanBoard: React.FC = () => {
   const [newColumnName, setNewColumnName] = useState('');
 
   const breadcrumbs = [
-    <Link underline="hover" color="inherit" href="#">
+    <Link underline="hover" color="text.primary" href="#">
       Dashboard
     </Link>,
-    <Typography key="3" color="text.primary">
-      Kanban
-    </Typography>,
+    <Typography key="3">Kanban</Typography>,
   ];
 
   const handleAddColumn = () => {
@@ -74,21 +59,16 @@ const KanbanBoard: React.FC = () => {
         {breadcrumbs}
       </Breadcrumbs>
       <div className="columns-container">
-        {columns.map((column: IColumn) => {
-          <Column key={column.id} column={column} />;
-        })}
-      </div>
-      {isAddingColumn ? (
-        <div className="column">
-          <div className="column-header">
-            <ThemeProvider theme={customTheme}>
+        {columns?.map((column: IColumn) => (
+          <Column key={column.id} column={column} />
+        ))}
+
+        {isAddingColumn ? (
+          <div className="column">
+            <div className="column-header">
               <Card>
                 <CardContent>
-                  <Box
-                    component="form"
-                    sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-                    autoComplete="off"
-                  >
+                  <Box component="form" autoComplete="off">
                     <TextField
                       id="outlined-basic"
                       label="Name"
@@ -116,16 +96,16 @@ const KanbanBoard: React.FC = () => {
                   </Button>
                 </CardActions>
               </Card>
-            </ThemeProvider>
+            </div>
           </div>
-        </div>
-      ) : (
-        canAddColumn && (
-          <div className="button" onClick={handleAddColumn}>
-            Add Column
-          </div>
-        )
-      )}
+        ) : (
+          canAddColumn && (
+            <div className="button" onClick={handleAddColumn}>
+              Add Column
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 };

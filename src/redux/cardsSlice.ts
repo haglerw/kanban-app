@@ -78,6 +78,13 @@ const cardsSlice = createSlice({
         column.tasks = column.tasks.filter((t) => t.id !== taskID);
       }
     },
+    clearAllTasks(state, action: PayloadAction<{ columnID: string }>) {
+      const { columnID } = action.payload;
+      const column = state.columns.find((col) => col.id === columnID);
+      if (column) {
+        column.tasks = [];
+      }
+    },
     moveTask(
       state,
       action: PayloadAction<{
@@ -119,6 +126,7 @@ export const {
   addTask,
   editTask,
   deleteTask,
+  clearAllTasks,
   moveTask,
 } = cardsSlice.actions;
 
