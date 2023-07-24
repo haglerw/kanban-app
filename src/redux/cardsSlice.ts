@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { IColumn, ITask } from '@src/types';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CardsState {
   columns: IColumn[];
@@ -16,7 +17,7 @@ const cardsSlice = createSlice({
     addColumn(state, action: PayloadAction<string>) {
       if (state.columns.length < 5) {
         const newColumn: IColumn = {
-          id: `column${state.columns.length + 1}`,
+          id: uuidv4(),
           name: action.payload,
           tasks: [],
         };
@@ -45,7 +46,7 @@ const cardsSlice = createSlice({
       const column = state.columns.find((col) => col.id === columnID);
       if (column) {
         const newTask: ITask = {
-          id: `task${column.tasks.length + 1}`,
+          id: uuidv4(),
           name: taskName,
         };
         column.tasks.push(newTask);
