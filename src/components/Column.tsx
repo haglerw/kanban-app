@@ -9,8 +9,8 @@ import {
 } from '@src/redux/cardsSlice';
 import { IColumn, ITask } from '@src/types';
 import { useState } from 'react';
-import { useDrop } from 'react-dnd';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDrag, useDrop } from 'react-dnd';
+import { useDispatch } from 'react-redux';
 import { ItemTypes } from './ItemTypes';
 import {
   Box,
@@ -39,6 +39,8 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [isEditingColumn, setIsEditingColumn] = useState(false);
   const [menu, setMenu] = useState(null);
+  const [error, setError] = useState('');
+  const [colError, setColError] = useState('');
 
   const handleAddTask = () => {
     setIsAddingTask(true);
@@ -47,11 +49,13 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   const handleCancelAddTask = () => {
     setIsAddingTask(false);
     setNewTaskName('');
+    setError('');
   };
 
   const handleCancelEditColumn = () => {
     setIsEditingColumn(false);
     setNewColumnName('');
+    setColError('');
   };
 
   const handleMenuOpen = (event: any) => {
@@ -78,34 +82,49 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   };
 
   const handleAddTaskConfirm = () => {
+    // check if the new task name is empty
+    if (!newTaskName.trim()) {
+      setError('Task name is required');
+      return;
+    }
+
     dispatch(addTask({ columnID: column.id, taskName: newTaskName }));
     setIsAddingTask(false);
     setNewTaskName('');
+    setError('');
   };
 
   const handleEditColumnConfirm = () => {
+    // check if the new task name is empty
+    if (!newColumnName.trim()) {
+      setColError('Column name is required');
+      return;
+    }
+
     dispatch(renameColumn({ columnID: column.id, newName: newColumnName }));
     setIsEditingColumn(false);
     setNewColumnName('');
+    setColError('');
   };
 
-  // const [, drop] = useDrop({
-  //   accept: ItemTypes.TASK,
-  //   drop: (item: any) => {
-  //     if (item.columnID !== column.id) {
-  //       dispatch(
-  //         moveTask({
-  //           taskID: item.id,
-  //           fromColumnID: item.columnID,
-  //           toColumnID: column.id,
-  //         })
-  //       );
-  //     }
-  //   },
-  // });
+  // Hook to handle drag and drop of tasks within this column
+  const [, drop] = useDrop({
+    accept: ItemTypes.TASK,
+    drop: (item: any) => {
+      if (item.columnID !== column.id) {
+        dispatch(
+          moveTask({
+            taskID: item.id,
+            fromColumnID: item.columnID,
+            toColumnID: column.id,
+          })
+        );
+      }
+    },
+  });
 
   return (
-    <div className="column">
+    <div className="column" ref={drop}>
       <div className="column-header">
         <Card sx={{ width: 200 }}>
           {isEditingColumn ? (
@@ -118,6 +137,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                     variant="outlined"
                     defaultValue={column.name}
                     onChange={(e) => setNewColumnName(e.target.value)}
+                    autoFocus
                   />
                 </Box>
               </CardContent>
@@ -187,6 +207,8 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                       variant="outlined"
                       value={newTaskName}
                       onChange={(e) => setNewTaskName(e.target.value)}
+                      error={!!error}
+                      helperText={error}
                     />
                   </Box>
                 </CardContent>

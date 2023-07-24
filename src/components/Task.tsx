@@ -3,8 +3,10 @@
 import { Card, CardContent } from '@mui/material';
 import { deleteTask, editTask } from '@src/redux/cardsSlice';
 import { ITask } from '@src/types';
-import React from 'react';
+import React, { useRef } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
 import { useDispatch } from 'react-redux';
+import { ItemTypes } from './ItemTypes';
 
 interface TaskProps {
   task: ITask;
@@ -13,6 +15,7 @@ interface TaskProps {
 
 const Task: React.FC<TaskProps> = ({ task, columnID }) => {
   const dispatch = useDispatch();
+  const ref = useRef(null);
 
   const handleEditTask = (updatedTask: string) => {
     dispatch(editTask({ columnID, taskID: task.id, updatedTask }));
@@ -22,8 +25,22 @@ const Task: React.FC<TaskProps> = ({ task, columnID }) => {
     dispatch(deleteTask({ columnID, taskID: task.id }));
   };
 
+  const [, drop] = useDrop({
+    accept: ItemTypes.TASK,
+  });
+
+  const [{ isDragging }, drag] = useDrag({
+    type: ItemTypes.TASK,
+    item: { id: task.id, columnID, type: ItemTypes.TASK },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  drag(drop(ref));
+
   return (
-    <div>
+    <div ref={ref} style={{ opacity: isDragging ? 0 : 1 }}>
       <Card sx={{ marginBottom: 2 }}>
         <CardContent>
           <p>{task.name}</p>
