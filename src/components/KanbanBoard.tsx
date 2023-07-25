@@ -1,25 +1,24 @@
 'use client';
 
-import {
-  Breadcrumbs,
-  Box,
-  Link,
-  Typography,
-  TextField,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-} from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { useDispatch, useSelector } from 'react-redux';
-import Column from './Column';
-import { IColumn } from '@src/types';
-import { useState } from 'react';
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Link,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { addColumn } from '@src/redux/cardsSlice';
-import React from 'react';
+import { IColumn } from '@src/types';
+import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDispatch, useSelector } from 'react-redux';
+import Column from './Column';
 
 const KanbanBoard: React.FC = () => {
   const dispatch = useDispatch();
@@ -28,13 +27,6 @@ const KanbanBoard: React.FC = () => {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
   const [error, setError] = useState('');
-
-  const breadcrumbs = [
-    <Link underline="hover" color="text.primary" href="#">
-      Dashboard
-    </Link>,
-    <Typography key="3">Kanban</Typography>,
-  ];
 
   const handleAddColumn = () => {
     setIsAddingColumn(true);
@@ -68,7 +60,10 @@ const KanbanBoard: React.FC = () => {
           aria-label="breadcrumb"
           className="breadcrumb"
         >
-          {breadcrumbs}
+          <Link underline="hover" color="text.primary" href="#">
+            Dashboard
+          </Link>
+          ,<Typography key="3">Kanban</Typography>
         </Breadcrumbs>
         <div className="columns-container">
           {columns?.map((column: IColumn) => (

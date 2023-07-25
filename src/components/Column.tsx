@@ -1,17 +1,6 @@
 'use client';
 
-import {
-  addTask,
-  clearAllTasks,
-  deleteColumn,
-  moveTask,
-  renameColumn,
-} from '@src/redux/cardsSlice';
-import { IColumn, ITask } from '@src/types';
-import { useState } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
-import { useDispatch } from 'react-redux';
-import { ItemTypes } from './ItemTypes';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import {
   Box,
   Button,
@@ -25,7 +14,18 @@ import {
   MenuItem,
   TextField,
 } from '@mui/material';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import {
+  addTask,
+  clearAllTasks,
+  deleteColumn,
+  moveTask,
+  renameColumn,
+} from '@src/redux/cardsSlice';
+import { IColumn, ITask } from '@src/types';
+import { useState } from 'react';
+import { useDrop } from 'react-dnd';
+import { useDispatch } from 'react-redux';
+import { ItemTypes } from './ItemTypes';
 import Task from './Task';
 
 interface ColumnProps {
