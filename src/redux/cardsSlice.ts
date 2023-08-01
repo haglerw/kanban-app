@@ -24,6 +24,9 @@ const cardsSlice = createSlice({
         state.columns.push(newColumn);
       }
     },
+    addAllColumns(state, action: PayloadAction<IColumn[]>) {
+      action?.payload?.map((column) => state.columns.push(column));
+    },
     renameColumn(
       state,
       action: PayloadAction<{ columnID: string; newName: string }>
@@ -122,6 +125,7 @@ const cardsSlice = createSlice({
 
 export const {
   addColumn,
+  addAllColumns,
   renameColumn,
   deleteColumn,
   addTask,

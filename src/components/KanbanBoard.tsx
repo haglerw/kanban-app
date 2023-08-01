@@ -12,21 +12,81 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { addColumn } from '@src/redux/cardsSlice';
+import { addAllColumns, addColumn } from '@src/redux/cardsSlice';
 import { IColumn } from '@src/types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import Column from './Column';
+import { gql, useQuery, useMutation } from '@apollo/client';
+
+const GET_COLUMNS = gql`
+  query {
+    columns {
+      id
+      name
+      tasks {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const ADD_COLUMN = gql`
+  mutation AddColumn($name: String!) {
+    addColumn(name: $name) {
+      id
+      name
+      tasks {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const RENAME_COLUMN = gql`
+  mutation EditColumnName($id: ID!, $name: String!) {
+    editColumnName(id: $id, name: $name) {
+      id
+      name
+    }
+  }
+`;
+
+const DELETE_COLUMN = gql`
+  mutation DeleteColumn($id: ID!) {
+    deleteColumn(id: $id) {
+      id
+      name
+    }
+  }
+`;
+
+const ADD_TASK = gql`
+  mutation AddTask($task: TaskInput!) {
+    addTask(task: $task) {
+      id
+      name
+    }
+  }
+`;
 
 const KanbanBoard: React.FC = () => {
   const dispatch = useDispatch();
-  const columns = useSelector((state: any) => state.cards.columns);
-  const canAddColumn = columns.length < 5;
+  const { error, data } = useQuery(GET_COLUMNS);
+  const [addColumn] = useMutation(ADD_COLUMN);
+  const [renameColumn] = useMutation(RENAME_COLUMN);
+  const [deleteColumn] = useMutation(DELETE_COLUMN);
+  const [addTask] = useMutation(ADD_TASK);
+
+  const columnsData = data?.columns;
+
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
-  const [error, setError] = useState('');
+  const [error2, setError] = useState('');
 
   const handleAddColumn = () => {
     setIsAddingColumn(true);
@@ -45,11 +105,33 @@ const KanbanBoard: React.FC = () => {
       return;
     }
 
-    dispatch(addColumn(newColumnName));
+    // dispatch(addColumn(newColumnName));
     setIsAddingColumn(false);
     setNewColumnName('');
     setError('');
   };
+
+  const submit = () => {
+    if (!newColumnName.trim()) {
+      setError('Column name is required');
+      return;
+    }
+
+    addColumn({ variables: { name: newColumnName } }).then((res) => {
+      console.log(res);
+      // dispatch(addColumn(newColumnName));
+      setIsAddingColumn(false);
+      setNewColumnName('');
+      setError('');
+    });
+  };
+
+  useEffect(() => {
+    dispatch(addAllColumns(columnsData));
+  }, [columnsData, dispatch]);
+
+  const columns = useSelector((state: any) => state.cards.columns);
+  const canAddColumn = columns?.length < 5;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -82,8 +164,8 @@ const KanbanBoard: React.FC = () => {
                         variant="outlined"
                         value={newColumnName}
                         onChange={(e) => setNewColumnName(e.target.value)}
-                        error={!!error}
-                        helperText={error}
+                        error={!!error2}
+                        helperText={error2}
                       />
                     </Box>
                   </CardContent>

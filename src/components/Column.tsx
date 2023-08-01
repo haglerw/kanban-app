@@ -27,10 +27,42 @@ import { useDrop } from 'react-dnd';
 import { useDispatch } from 'react-redux';
 import { ItemTypes } from './ItemTypes';
 import Task from './Task';
+import { gql, useMutation } from '@apollo/client';
 
 interface ColumnProps {
   column: IColumn;
 }
+
+const RENAME_COLUMN = gql`
+  mutation EditColumn($id: ID!, $name: String!) {
+    editColumn(id: $id, name: $name) {
+      id
+      name
+    }
+  }
+`;
+
+const CLEAR_TASKS = gql`
+  mutation ClearTasks($columnID: ID!) {
+    clearAllTasks(columnID: $columnID) {
+      id
+      name
+      tasks {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const DELETE_COLUMN = gql`
+  mutation DeleteColumn($id: ID!) {
+    deleteColumn(id: $id) {
+      id
+      name
+    }
+  }
+`;
 
 const Column: React.FC<ColumnProps> = ({ column }) => {
   const dispatch = useDispatch();
@@ -41,6 +73,8 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   const [menu, setMenu] = useState(null);
   const [error, setError] = useState('');
   const [colError, setColError] = useState('');
+
+  const [renameColumnMutation] = useMutation(RENAME_COLUMN);
 
   const handleAddTask = () => {
     setIsAddingTask(true);
@@ -101,10 +135,18 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       return;
     }
 
-    dispatch(renameColumn({ columnID: column.id, newName: newColumnName }));
-    setIsEditingColumn(false);
-    setNewColumnName('');
-    setColError('');
+    renameColumnMutation({
+      variables: { id: column.id, name: newColumnName },
+    })
+      .then(() => {
+        dispatch(renameColumn({ columnID: column.id, newName: newColumnName }));
+        setIsEditingColumn(false);
+        setNewColumnName('');
+        setColError('');
+      })
+      .catch((error) => {
+        console.log(`Error renaming column: ${error}`);
+      });
   };
 
   // Hook to handle drag and drop of tasks within this column
