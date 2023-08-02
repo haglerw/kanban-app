@@ -1,5 +1,6 @@
 'use client';
 
+import { gql, useMutation } from '@apollo/client';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import {
   Box,
@@ -14,20 +15,12 @@ import {
   MenuItem,
   TextField,
 } from '@mui/material';
-import {
-  addTask,
-  clearAllTasks,
-  deleteColumn,
-  moveTask,
-  renameColumn,
-} from '@src/redux/cardsSlice';
 import { IColumn, ITask } from '@src/types';
 import { useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { useDispatch } from 'react-redux';
 import { ItemTypes } from './ItemTypes';
+import { GET_COLUMNS } from './KanbanBoard';
 import Task from './Task';
-import { gql, useMutation } from '@apollo/client';
 
 interface ColumnProps {
   column: IColumn;
@@ -44,14 +37,7 @@ const RENAME_COLUMN = gql`
 
 const CLEAR_TASKS = gql`
   mutation ClearTasks($columnID: ID!) {
-    clearAllTasks(columnID: $columnID) {
-      id
-      name
-      tasks {
-        id
-        name
-      }
-    }
+    clearTasks(columnID: $columnID)
   }
 `;
 
@@ -64,8 +50,27 @@ const DELETE_COLUMN = gql`
   }
 `;
 
+const ADD_TASK = gql`
+  mutation AddTask($taskInput: TaskInput!) {
+    addTask(taskInput: $taskInput) {
+      id
+      name
+      columnID
+    }
+  }
+`;
+
+const MOVE_TASK = gql`
+  mutation MoveTask($taskID: ID!, $fromColumnID: ID!, $toColumnID: ID!) {
+    moveTask(
+      taskID: $taskID
+      fromColumnID: $fromColumnID
+      toColumnID: $toColumnID
+    )
+  }
+`;
+
 const Column: React.FC<ColumnProps> = ({ column }) => {
-  const dispatch = useDispatch();
   const [newTaskName, setNewTaskName] = useState('');
   const [newColumnName, setNewColumnName] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -74,7 +79,11 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   const [error, setError] = useState('');
   const [colError, setColError] = useState('');
 
-  const [renameColumnMutation] = useMutation(RENAME_COLUMN);
+  const [renameColumn] = useMutation(RENAME_COLUMN);
+  const [deleteColumn] = useMutation(DELETE_COLUMN);
+  const [addTask] = useMutation(ADD_TASK);
+  const [clearTasks] = useMutation(CLEAR_TASKS);
+  const [moveTask] = useMutation(MOVE_TASK);
 
   const handleAddTask = () => {
     setIsAddingTask(true);
@@ -106,13 +115,21 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   };
 
   const handleClearTasks = () => {
-    dispatch(clearAllTasks({ columnID: column.id }));
-    handleMenuClose();
+    clearTasks({
+      variables: { columnID: column.id },
+      refetchQueries: [{ query: GET_COLUMNS }],
+    })
+      .then(() => handleMenuClose())
+      .catch((error) => console.log(`Error clearing tasks: ${error}`));
   };
 
   const handleDeleteColumn = () => {
-    dispatch(deleteColumn(column.id));
-    handleMenuClose();
+    deleteColumn({
+      variables: { id: column.id },
+      refetchQueries: [{ query: GET_COLUMNS }],
+    })
+      .then(() => handleMenuClose())
+      .catch((error) => console.log(`Error deleting column: ${error}`));
   };
 
   const handleAddTaskConfirm = () => {
@@ -122,10 +139,16 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       return;
     }
 
-    dispatch(addTask({ columnID: column.id, taskName: newTaskName }));
-    setIsAddingTask(false);
-    setNewTaskName('');
-    setError('');
+    addTask({
+      variables: { taskInput: { columnID: column.id, name: newTaskName } },
+      refetchQueries: [{ query: GET_COLUMNS }],
+    })
+      .then(() => {
+        setIsAddingTask(false);
+        setNewTaskName('');
+        setError('');
+      })
+      .catch((error) => console.log(`Error adding new task: ${error}`));
   };
 
   const handleEditColumnConfirm = () => {
@@ -135,11 +158,10 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       return;
     }
 
-    renameColumnMutation({
+    renameColumn({
       variables: { id: column.id, name: newColumnName },
     })
       .then(() => {
-        dispatch(renameColumn({ columnID: column.id, newName: newColumnName }));
         setIsEditingColumn(false);
         setNewColumnName('');
         setColError('');
@@ -154,13 +176,14 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     accept: ItemTypes.TASK,
     drop: (item: any) => {
       if (item.columnID !== column.id) {
-        dispatch(
-          moveTask({
+        moveTask({
+          variables: {
             taskID: item.id,
             fromColumnID: item.columnID,
             toColumnID: column.id,
-          })
-        );
+          },
+          refetchQueries: [{ query: GET_COLUMNS }],
+        }).catch((error) => console.log(`Error moving task: ${error}`));
       }
     },
   });

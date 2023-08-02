@@ -1,5 +1,6 @@
 'use client';
 
+import { gql, useMutation, useQuery } from '@apollo/client';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
   Box,
@@ -12,16 +13,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { addAllColumns, addColumn } from '@src/redux/cardsSlice';
 import { IColumn } from '@src/types';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDispatch, useSelector } from 'react-redux';
 import Column from './Column';
-import { gql, useQuery, useMutation } from '@apollo/client';
 
-const GET_COLUMNS = gql`
+export const GET_COLUMNS = gql`
   query {
     columns {
       id
@@ -47,46 +45,15 @@ const ADD_COLUMN = gql`
   }
 `;
 
-const RENAME_COLUMN = gql`
-  mutation EditColumnName($id: ID!, $name: String!) {
-    editColumnName(id: $id, name: $name) {
-      id
-      name
-    }
-  }
-`;
-
-const DELETE_COLUMN = gql`
-  mutation DeleteColumn($id: ID!) {
-    deleteColumn(id: $id) {
-      id
-      name
-    }
-  }
-`;
-
-const ADD_TASK = gql`
-  mutation AddTask($task: TaskInput!) {
-    addTask(task: $task) {
-      id
-      name
-    }
-  }
-`;
-
 const KanbanBoard: React.FC = () => {
-  const dispatch = useDispatch();
   const { error, data } = useQuery(GET_COLUMNS);
   const [addColumn] = useMutation(ADD_COLUMN);
-  const [renameColumn] = useMutation(RENAME_COLUMN);
-  const [deleteColumn] = useMutation(DELETE_COLUMN);
-  const [addTask] = useMutation(ADD_TASK);
-
-  const columnsData = data?.columns;
 
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
   const [error2, setError] = useState('');
+
+  const canAddColumn = data?.columns?.length < 5;
 
   const handleAddColumn = () => {
     setIsAddingColumn(true);
@@ -105,33 +72,17 @@ const KanbanBoard: React.FC = () => {
       return;
     }
 
-    // dispatch(addColumn(newColumnName));
-    setIsAddingColumn(false);
-    setNewColumnName('');
-    setError('');
+    addColumn({
+      variables: { name: newColumnName },
+      refetchQueries: [{ query: GET_COLUMNS }],
+    })
+      .then((res) => {
+        setIsAddingColumn(false);
+        setNewColumnName('');
+        setError('');
+      })
+      .catch((error) => console.log(`Error adding column: ${error}`));
   };
-
-  const submit = () => {
-    if (!newColumnName.trim()) {
-      setError('Column name is required');
-      return;
-    }
-
-    addColumn({ variables: { name: newColumnName } }).then((res) => {
-      console.log(res);
-      // dispatch(addColumn(newColumnName));
-      setIsAddingColumn(false);
-      setNewColumnName('');
-      setError('');
-    });
-  };
-
-  useEffect(() => {
-    dispatch(addAllColumns(columnsData));
-  }, [columnsData, dispatch]);
-
-  const columns = useSelector((state: any) => state.cards.columns);
-  const canAddColumn = columns?.length < 5;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -148,7 +99,7 @@ const KanbanBoard: React.FC = () => {
           ,<Typography key="3">Kanban</Typography>
         </Breadcrumbs>
         <div className="columns-container">
-          {columns?.map((column: IColumn) => (
+          {data?.columns?.map((column: IColumn) => (
             <Column key={column.id} column={column} />
           ))}
 

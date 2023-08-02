@@ -7,6 +7,7 @@ import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useDispatch } from 'react-redux';
 import { ItemTypes } from './ItemTypes';
+import { gql, useMutation } from '@apollo/client';
 
 interface TaskProps {
   task: ITask;
